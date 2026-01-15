@@ -1,3 +1,4 @@
+import json
 import networkx as nx
 from pyvis.network import Network
 import os
@@ -5,136 +6,109 @@ import webbrowser
 from structures import SimpleGraph
 from solver import BoundedMultiSourceShortestPath
 
-# ==========================================
-# VISUALIZAÇÃO GPS (ROBUSTA)
-# ==========================================
+import json
+
+import json
+
 def visualize_interactive_gps(simple_graph, sources, dist_map, start_node="A", target_node="F"):
-    G = nx.DiGraph()
+    # --- RASTREIO DO CAMINHO (Mantido) ---
     path_edges = set()
-    
-    # --- RASTREIO INTELIGENTE ---
     current_node = target_node
+    if dist_map.get(target_node, float('inf')) != float('inf'):
+        while current_node != start_node:
+            found = False
+            for parent, weight in simple_graph.get_incoming_edges(current_node):
+                if abs(dist_map.get(parent, float('inf')) + weight - dist_map[current_node]) < 1e-5:
+                    path_edges.add((parent, current_node))
+                    current_node = parent
+                    found = True
+                    break
+            if not found: break
+
+    # --- CONFIGURAÇÃO DA REDE ---
+    # Removido o 'heading' daqui para evitar duplicidade
+    net = Network(height="600px", width="100%", bgcolor="#0d0d0d", font_color="white", directed=True)
     
-    # 1. Verifica se chegamos ao destino
-    if dist_map[target_node] == float('inf'):
-        print(f"\n❌ [VISUALIZADOR] O nó {target_node} não foi alcançado!")
-        # Fallback: Encontra o nó alcançável mais distante (excluindo Z e caminhos ruins)
-        valid_nodes = {n: d for n, d in dist_map.items() if d != float('inf') and n != "Z" and d < 500}
-        if valid_nodes:
-            current_node = max(valid_nodes, key=valid_nodes.get)
-            print(f"🔄 [RECUPERAÇÃO] Desenhando caminho até: {current_node}")
-        else:
-            current_node = start_node
-    else:
-        print(f"\n✅ [VISUALIZADOR] Rota encontrada até {target_node} (Custo: {dist_map[target_node]})")
+    # Adicionar Nós
+    for node_id in dist_map.keys():
+        dist = dist_map[node_id]
+        label = f"{node_id}\n({dist:.1f})"
+        if node_id == start_node: color = "#00FF00"
+        elif node_id == target_node: color = "#FF0000" if dist != float('inf') else "#660000"
+        else: color = "#444444"
+        net.add_node(str(node_id), label=label, color=color, size=25)
 
-    # 2. Backtracking (GPS)
-    while current_node != start_node and dist_map[current_node] != float('inf'):
-        best_parent = None
-        # Procura nos pais quem satisfaz: Dist(Pai) + Peso = Dist(Filho)
-        for parent, weight in simple_graph.get_incoming_edges(current_node):
-            d_p = dist_map.get(parent, float('inf'))
-            d_c = dist_map.get(current_node, float('inf'))
-            
-            if abs(d_p + weight - d_c) < 1e-5:
-                best_parent = parent
-                path_edges.add((best_parent, current_node))
-                break
-        
-        if best_parent:
-            current_node = best_parent
-        else:
-            break
-
-    # --- DESENHO DO GRAFO ---
-    # Adiciona nós e arestas ao NetworkX para exportar para PyVis
+    # Adicionar Arestas
     for u, edges in simple_graph.edges.items():
         for v, weight in edges:
-            if (u, v) in path_edges:
-                color = "#FFFF00" # AMARELO (Rota GPS)
-                width = 6
-                dashes = False
-            else:
-                color = "#333333" # Cinza Escuro (Fundo)
-                width = 1
-                dashes = True 
-            
-            G.add_edge(u, v, label=str(weight), color=color, width=width, dashes=dashes)
+            is_gps = (u, v) in path_edges
+            net.add_edge(str(u), str(v), label=str(weight), 
+                         color="#FFFF00" if is_gps else "#333333", 
+                         width=5 if is_gps else 1, arrows="to")
 
-    # Configuração PyVis
-    net = Network(height="450px", width="100%", bgcolor="#0d0d0d", font_color="white", directed=True)
-    net.force_atlas_2based()
+    net.force_atlas_2based(spring_length=250)
     net.show_buttons(filter_=['physics'])
+
+    # --- CUSTOMIZAÇÃO DO TÍTULO E CORES ---
+    html_content = net.generate_html()
     
-    for node in G.nodes():
-        node_id = str(node)
-        distance = dist_map.get(node, float('inf'))
-        dist_str = f"{distance:.1f}" if distance != float('inf') else "inf"
-        fixed_size = 25 
+    # Criamos um cabeçalho personalizado com cores específicas
+    custom_header = f"""
+    <div style="background-color: #0d0d0d; color: white; padding: 20px; text-align: center; font-family: sans-serif; border-bottom: 1px solid #333;">
+        <h2 style="margin: 0; font-size: 24px;">
+            Melhor Caminho SSSP DE: 
+            <span style="color: #00FF00;">{start_node}</span> 
+            Para: 
+            <span style="color: #FF0000;">{target_node}</span>
+        </h2>
+    </div>
+    """
+    
+    # Injetamos o cabeçalho logo após a abertura do <body>
+    html_content = html_content.replace("<body>", f"<body>{custom_header}")
 
-        # Cores dos Nós
-        if node == start_node:
-            color = "#00FF00" # VERDE (Início)
-        elif node == target_node:
-            if distance != float('inf'):
-                color = "#FF0000" # VERMELHO (Chegou!)
-            else:
-                color = "#660000" # VINHO (Não chegou)
-        elif distance != float('inf'):
-            color = "#666666" # Cinza (Visitado)
-        else:
-            color = "#111111" # Preto (Não visitado)
-            
-        net.add_node(node_id, label=f"{node}\n({dist_str})", title=f"Dist: {dist_str}", color=color, size=fixed_size)
-
-    for u, v, data in G.edges(data=True):
-        net.add_edge(str(u), str(v), **data)
-
-    output_file = "grafo_bmssp_final.html"
-    net.write_html(output_file)
-    print(f"Visualização gerada: {output_file}")
+    # Salvar e Abrir
+    output_file = "grafo_final_estilizado.html"
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    
+    print(f"✅ Sucesso! Título estilizado gerado em: {output_file}")
+    webbrowser.open("file://" + os.path.realpath(output_file))
+    
+def load_graph_data(filename, graph_obj):
+    """Carrega nós e arestas de um JSON e popula o grafo."""
     try:
-        webbrowser.open("file://" + os.path.realpath(output_file))
-    except:
-        pass
+        with open(filename, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            for edge in data['edges']:
+                graph_obj.add_edge(edge['u'], edge['v'], edge['w'])
+            return data['nodes']
+    except FileNotFoundError:
+        print(f"❌ Erro: O ficheiro {filename} não foi encontrado!")
+        return None
 
-# ==========================================
-# EXECUÇÃO PRINCIPAL
-# ==========================================
 def main():
-    print("=== FINAL BMSSP (ESTRUTURA MODULAR) ===")
+    print("=== FINAL BMSSP (CARREGANDO CENÁRIO 30 ARESTAS) ===")
     graph = SimpleGraph()
     
-    # --- Definição do Grafo ---
-    # Caminho ideal
-    graph.add_edge("A", "B", 4)
-    graph.add_edge("B", "D", 2)
-    graph.add_edge("D", "E", 9)
-    graph.add_edge("E", "F", 5) 
-    
-    # Caminhos alternativos/ruins
-    graph.add_edge("A", "C", 20)
-    graph.add_edge("A", "Z", 100)
-    graph.add_edge("B", "C", 8) 
-    graph.add_edge("C", "D", 7) 
+    # --- ESCOLHA DO CENÁRIO ---
+    cenario_arquivo = "cenario_complexo.json"  # Altere conforme necessário
 
-    all_nodes = ["A", "B", "C", "D", "E", "F", "Z"]
-    dist_map = {node: float('inf') for node in all_nodes}
-    dist_map["A"] = 0.0
+    all_nodes = load_graph_data(cenario_arquivo, graph)
     
-    # --- Configuração do Solver ---
-    # Parâmetros "Power Mode" para garantir execução total
+    if not all_nodes:
+        return # Interrompe se o ficheiro não for lido
+
+    # Inicializa distâncias
+    dist_map = {node: float('inf') for node in all_nodes}
+    dist_map["A"] = 0.0 # Ponto de partida
+    
+    # Solver
     constants = {'k': 5000, 't': 50} 
     solver = BoundedMultiSourceShortestPath(graph, dist_map, constants)
-
-    print("-> Iniciando cálculo...")
     solver.bmssp(level=2, bound=5000.0, sources={"A"}) 
 
-    print("\n-> Resultados:")
-    for n in all_nodes:
-        print(f"  {n}: {dist_map[n]}")
-
-    # --- Visualização ---
+    # Visualização (Alvo: "F" ou "O" conforme o JSON)
     visualize_interactive_gps(graph, {"A"}, dist_map, start_node="A", target_node="F")
 
 if __name__ == "__main__":

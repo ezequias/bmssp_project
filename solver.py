@@ -30,20 +30,16 @@ class BoundedMultiSourceShortestPath:
         iteration = 0
         while not batch_queue.is_empty():
             iteration += 1
-            if iteration > 5000: # Travão de emergência apenas para loops infinitos reais
-                print("⚠️ Aviso: Safety break ativado no Solver.")
+            # Travão de segurança para grafos pequenos: 500 é mais que suficiente
+            if iteration > 500: 
                 break 
 
             batch_bound, batch_sources = batch_queue.pull()
-            
-            if not batch_sources: 
-                break
+            if not batch_sources: break
 
-            # Recursão
             rec_bound, rec_vertices = self.bmssp(level - 1, batch_bound, batch_sources)
             processed_vertices_u.update(rec_vertices)
             
-            # Relaxamento
             self._process_edges_and_update_queue(
                 rec_vertices, batch_sources, batch_bound, rec_bound, bound, batch_queue
             )
