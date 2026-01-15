@@ -1,6 +1,6 @@
 import heapq
 from typing import Set, Tuple, Dict
-from structures import SimpleGraph, BatchQueue
+from .structures import SimpleGraph, BatchQueue
 
 class BoundedMultiSourceShortestPath:
     def __init__(self, graph: SimpleGraph, distance_map: Dict, constants: Dict):

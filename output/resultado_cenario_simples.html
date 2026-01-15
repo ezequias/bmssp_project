@@ -33,7 +33,7 @@
 
              #mynetwork {
                  width: 100%;
-                 height: 600px;
+                 height: 700px;
                  background-color: #0d0d0d;
                  border: 1px solid lightgray;
                  position: relative;
@@ -43,28 +43,13 @@
              
 
              
-             #config {
-                 float: left;
-                 width: 400px;
-                 height: 600px;
-             }
-             
 
              
         </style>
     </head>
 
 
-    <body>
-    <div style="background-color: #0d0d0d; color: white; padding: 20px; text-align: center; font-family: sans-serif; border-bottom: 1px solid #333;">
-        <h2 style="margin: 0; font-size: 24px;">
-            Melhor Caminho SSSP DE: 
-            <span style="color: #00FF00;">A</span> 
-            Para: 
-            <span style="color: #FF0000;">F</span>
-        </h2>
-    </div>
-    
+    <body><div style="background:#1a1a1a; color:white; padding:15px; text-align:center;"><h2 style="margin:0;">SSSP: <span style="color:#00FF00">A</span> para <span style="color:#FF0000">F</span></h2></div>
         <div class="card" style="width: 100%">
             
             
@@ -72,8 +57,6 @@
         </div>
 
         
-        
-            <div id="config"></div>
         
 
         <script type="text/javascript">
@@ -105,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "#00FF00", "font": {"color": "white"}, "id": "A", "label": "A\n(0.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "B", "label": "B\n(4.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "C", "label": "C\n(3.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "D", "label": "D\n(6.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "E", "label": "E\n(15.0)", "shape": "dot", "size": 25}, {"color": "#FF0000", "font": {"color": "white"}, "id": "F", "label": "F\n(19.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "G", "label": "G\n(7.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "H", "label": "H\n(9.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "I", "label": "I\n(5.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "Z", "label": "Z\n(50.0)", "shape": "dot", "size": 25}]);
-                  edges = new vis.DataSet([{"arrows": "to", "color": "#333333", "from": "A", "label": "4", "to": "B", "width": 1}, {"arrows": "to", "color": "#FFFF00", "from": "A", "label": "3", "to": "C", "width": 5}, {"arrows": "to", "color": "#333333", "from": "A", "label": "50", "to": "Z", "width": 1}, {"arrows": "to", "color": "#333333", "from": "B", "label": "2", "to": "D", "width": 1}, {"arrows": "to", "color": "#333333", "from": "B", "label": "1", "to": "I", "width": 1}, {"arrows": "to", "color": "#333333", "from": "D", "label": "9", "to": "E", "width": 1}, {"arrows": "to", "color": "#333333", "from": "E", "label": "5", "to": "F", "width": 1}, {"arrows": "to", "color": "#FFFF00", "from": "C", "label": "4", "to": "G", "width": 5}, {"arrows": "to", "color": "#FFFF00", "from": "G", "label": "2", "to": "H", "width": 5}, {"arrows": "to", "color": "#FFFF00", "from": "H", "label": "10", "to": "F", "width": 5}, {"arrows": "to", "color": "#333333", "from": "I", "label": "20", "to": "F", "width": 1}]);
+                  nodes = new vis.DataSet([{"color": "#00FF00", "font": {"color": "white"}, "id": "A", "label": "A\n(0.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "B", "label": "B\n(4.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "C", "label": "C\n(inf)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "D", "label": "D\n(6.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "E", "label": "E\n(15.0)", "shape": "dot", "size": 25}, {"color": "#FF0000", "font": {"color": "white"}, "id": "F", "label": "F\n(20.0)", "shape": "dot", "size": 25}, {"color": "#444444", "font": {"color": "white"}, "id": "Z", "label": "Z\n(inf)", "shape": "dot", "size": 25}]);
+                  edges = new vis.DataSet([{"arrows": "to", "color": "#FFFF00", "from": "A", "label": "4", "to": "B", "width": 5}, {"arrows": "to", "color": "#FFFF00", "from": "B", "label": "2", "to": "D", "width": 5}, {"arrows": "to", "color": "#FFFF00", "from": "D", "label": "9", "to": "E", "width": 5}, {"arrows": "to", "color": "#FFFF00", "from": "E", "label": "5", "to": "F", "width": 5}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
@@ -119,10 +102,7 @@
 
                   var options = {
     "configure": {
-        "enabled": true,
-        "filter": [
-            "physics"
-        ]
+        "enabled": false
     },
     "edges": {
         "color": {
@@ -162,10 +142,6 @@
                   
 
 
-                  
-                  // if this network requires displaying the configure window,
-                  // put it in its div
-                  options.configure["container"] = document.getElementById("config");
                   
 
                   network = new vis.Network(container, data, options);

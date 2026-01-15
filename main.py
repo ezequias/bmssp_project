@@ -1,80 +1,97 @@
+import os    # <--- IMPORTANTE: Deve ser o primeiro
+import sys   # <--- IMPORTANTE: Deve ser o segundo
 import json
-import networkx as nx
-from pyvis.network import Network
-import os
 import webbrowser
-from structures import SimpleGraph
-from solver import BoundedMultiSourceShortestPath
+from pyvis.network import Network
 
-import json
+# Adiciona a raiz do projeto ao PATH para que o Python encontre a pasta 'src'
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-import json
+# Imports do seu código fonte
+from src.structures import SimpleGraph
+from src.solver import BoundedMultiSourceShortestPath
 
-def visualize_interactive_gps(simple_graph, sources, dist_map, start_node="A", target_node="F"):
-    # --- RASTREIO DO CAMINHO (Mantido) ---
+def print_path_summary(dist_map, start_node, target_node, graph):
+    """Extrai e imprime a rota e o custo total no console."""
+    path = []
+    curr = target_node
+    total_cost = dist_map.get(target_node, float('inf'))
+
+    if total_cost == float('inf'):
+        print(f"\n❌ ROTA NÃO ENCONTRADA: Não há caminho de {start_node} para {target_node}")
+        return
+
+    # Backtracking para reconstruir a lista de nós
+    while curr != start_node:
+        path.append(curr)
+        found = False
+        for p, w in graph.get_incoming_edges(curr):
+            if abs(dist_map.get(p, float('inf')) + w - dist_map[curr]) < 1e-5:
+                curr = p
+                found = True
+                break
+        if not found: break
+    
+    path.append(start_node)
+    path.reverse() # Inverte para ficar de Start -> Target
+
+    # Imprime no console com setas
+    print("\n" + "="*50)
+    print(f"📍 RESUMO DA ROTA (GPS)")
+    print(f"🏁 Origem: {start_node} | 🎯 Destino: {target_node}")
+    print(f"🛣️  Caminho: {' ➔ '.join(path)}")
+    print(f"💰 Custo Total: {total_cost:.2f}")
+    print("="*50 + "\n")
+
+def visualize_interactive_gps(graph, dist_map, start_node, target_node, filename="resultado_gps.html"):
+    # 1. Backtracking (Lógica da rota amarela)
     path_edges = set()
-    current_node = target_node
-    if dist_map.get(target_node, float('inf')) != float('inf'):
-        while current_node != start_node:
+    curr = target_node
+    if dist_map.get(curr, float('inf')) != float('inf'):
+        while curr != start_node:
             found = False
-            for parent, weight in simple_graph.get_incoming_edges(current_node):
-                if abs(dist_map.get(parent, float('inf')) + weight - dist_map[current_node]) < 1e-5:
-                    path_edges.add((parent, current_node))
-                    current_node = parent
+            for p, w in graph.get_incoming_edges(curr):
+                if abs(dist_map.get(p, float('inf')) + w - dist_map[curr]) < 1e-5:
+                    path_edges.add((p, curr))
+                    curr = p
                     found = True
                     break
             if not found: break
 
-    # --- CONFIGURAÇÃO DA REDE ---
-    # Removido o 'heading' daqui para evitar duplicidade
-    net = Network(height="600px", width="100%", bgcolor="#0d0d0d", font_color="white", directed=True)
+    # 2. CRIAR O OBJETO 'net' (ESTA LINHA DEVE VIR ANTES DE QUALQUER 'net.')
+    net = Network(height="700px", width="100%", bgcolor="#0d0d0d", font_color="white", directed=True)
     
-    # Adicionar Nós
-    for node_id in dist_map.keys():
-        dist = dist_map[node_id]
-        label = f"{node_id}\n({dist:.1f})"
-        if node_id == start_node: color = "#00FF00"
-        elif node_id == target_node: color = "#FF0000" if dist != float('inf') else "#660000"
-        else: color = "#444444"
-        net.add_node(str(node_id), label=label, color=color, size=25)
+    # 3. Adicionar Nós e Arestas
+    for n, d in dist_map.items():
+        color = "#00FF00" if n == start_node else ("#FF0000" if n == target_node else "#444444")
+        net.add_node(n, label=f"{n}\n({d:.1f})", color=color, size=25)
 
-    # Adicionar Arestas
-    for u, edges in simple_graph.edges.items():
-        for v, weight in edges:
+    for u, edges in graph.edges.items():
+        for v, w in edges:
             is_gps = (u, v) in path_edges
-            net.add_edge(str(u), str(v), label=str(weight), 
+            net.add_edge(u, v, label=str(w), 
                          color="#FFFF00" if is_gps else "#333333", 
                          width=5 if is_gps else 1, arrows="to")
 
     net.force_atlas_2based(spring_length=250)
-    net.show_buttons(filter_=['physics'])
-
-    # --- CUSTOMIZAÇÃO DO TÍTULO E CORES ---
+    
+    # 4. AGORA SIM, GERAR O HTML (net já existe aqui)
     html_content = net.generate_html()
     
-    # Criamos um cabeçalho personalizado com cores específicas
-    custom_header = f"""
-    <div style="background-color: #0d0d0d; color: white; padding: 20px; text-align: center; font-family: sans-serif; border-bottom: 1px solid #333;">
-        <h2 style="margin: 0; font-size: 24px;">
-            Melhor Caminho SSSP DE: 
-            <span style="color: #00FF00;">{start_node}</span> 
-            Para: 
-            <span style="color: #FF0000;">{target_node}</span>
-        </h2>
-    </div>
-    """
+    # Injeção do título e gravação na pasta 'output'
+    output_dir = "output"
+    if not os.path.exists(output_dir): os.makedirs(output_dir)
     
-    # Injetamos o cabeçalho logo após a abertura do <body>
+    filepath = os.path.join(output_dir, filename)
+    
+    custom_header = f'<div style="background:#1a1a1a; color:white; padding:15px; text-align:center;"><h2 style="margin:0;">SSSP: <span style="color:#00FF00">{start_node}</span> para <span style="color:#FF0000">{target_node}</span></h2></div>'
     html_content = html_content.replace("<body>", f"<body>{custom_header}")
 
-    # Salvar e Abrir
-    output_file = "grafo_final_estilizado.html"
-    with open(output_file, "w", encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(html_content)
     
-    print(f"✅ Sucesso! Título estilizado gerado em: {output_file}")
-    webbrowser.open("file://" + os.path.realpath(output_file))
-    
+    webbrowser.open("file://" + os.path.abspath(filepath))
+
 def load_graph_data(filename, graph_obj):
     """Carrega nós e arestas de um JSON e popula o grafo."""
     try:
@@ -88,28 +105,34 @@ def load_graph_data(filename, graph_obj):
         return None
 
 def main():
-    print("=== FINAL BMSSP (CARREGANDO CENÁRIO 30 ARESTAS) ===")
+    print("=== FINAL BMSSP (EXECUTANDO CENÁRIO COMPLEXO) ===")
     graph = SimpleGraph()
     
-    # --- ESCOLHA DO CENÁRIO ---
-    cenario_arquivo = "cenario_complexo.json"  # Altere conforme necessário
-
+    # 1. Carregar Dados do SEU ficheiro
+    cenario_arquivo = os.path.join("data", "cenario_complexo.json")
     all_nodes = load_graph_data(cenario_arquivo, graph)
     
     if not all_nodes:
-        return # Interrompe se o ficheiro não for lido
+        return 
 
-    # Inicializa distâncias
+    # 2. Configuração Inicial das Distâncias
+    # Para o algoritmo funcionar como SSSP, a origem deve ser 0.0
     dist_map = {node: float('inf') for node in all_nodes}
-    dist_map["A"] = 0.0 # Ponto de partida
+    dist_map["A"] = 0.0 
     
-    # Solver
+    # 3. Executar o Solver (Onde a magia acontece)
     constants = {'k': 5000, 't': 50} 
     solver = BoundedMultiSourceShortestPath(graph, dist_map, constants)
+    
+    # O solver vai preencher o dist_map com os valores corretos
     solver.bmssp(level=2, bound=5000.0, sources={"A"}) 
 
-    # Visualização (Alvo: "F" ou "O" conforme o JSON)
-    visualize_interactive_gps(graph, {"A"}, dist_map, start_node="A", target_node="F")
+    # 🆕 NOVO: Mostrar no console
+    print_path_summary(dist_map, "A", "F", graph)
+
+    # 4. Visualização Final (CHAMADA ÚNICA)
+    # Removido o argumento extra {"A"} para evitar o TypeError
+    visualize_interactive_gps(graph, dist_map, start_node="A", target_node="F")
 
 if __name__ == "__main__":
     main()
