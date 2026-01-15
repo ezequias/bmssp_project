@@ -584,6 +584,6 @@ Zoom: Usa a roda do mouse para aproximar.
 
 Hover: Passa o mouse por cima de um nó para ver detalhes.
 
-![alt text](image.png)
+![Caminho ideal em amarelo](image.png)
 > Written with [StackEdit](https://stackedit.io/).
 
