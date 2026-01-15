@@ -62,8 +62,9 @@ def visualize_interactive_gps(simple_graph, sources, dist_map, start_node="A", t
             G.add_edge(u, v, label=str(weight), color=color, width=width, dashes=dashes)
 
     # Configuração PyVis
-    net = Network(height="750px", width="100%", bgcolor="#0d0d0d", font_color="white", directed=True)
+    net = Network(height="450px", width="100%", bgcolor="#0d0d0d", font_color="white", directed=True)
     net.force_atlas_2based()
+    net.show_buttons(filter_=['physics'])
     
     for node in G.nodes():
         node_id = str(node)
