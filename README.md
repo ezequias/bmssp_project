@@ -563,6 +563,27 @@ Este vídeo é relevante porque explica o contexto do avanço teórico deste pap
 [Breaking the Sorting Barrier: A New Shortest Path Breakthrough](https://www.youtube.com/watch?v=flfg0SfXkzY)
 
 
+## Saída
+Como saída da execução do código abaixo você irá visualizar a saída gráfica.
+> (venv) PS C:\Projects\bmssp_project> python .\main.py
 
+Como resultado da execução do main.py você obterá um grafo do caminho mais curto.
+
+O que vai acontecer agora?
+Quando executares python main.py, o script vai criar um arquivo novo na pasta chamado grafo_interativo.html.
+
+Ele vai tentar abrir esse arquivo automaticamente no teu Chrome/Edge/Firefox.
+
+A Magia:
+
+Arrastar: Podes clicar nos nós e arrastá-los para desatar os nós que estão amontoados.
+
+Física: Vais ver os nós a "flutuar" e a ajustar-se sozinhos.
+
+Zoom: Usa a roda do mouse para aproximar.
+
+Hover: Passa o mouse por cima de um nó para ver detalhes.
+
+![alt text](image.png)
 > Written with [StackEdit](https://stackedit.io/).
 

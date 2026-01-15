@@ -1,5 +1,5 @@
 import heapq
-from typing import Set, Tuple, List, Iterable, Dict
+from typing import Set, Tuple, List, Dict, Iterable
 
 class SimpleGraph:
     """
@@ -12,7 +12,6 @@ class SimpleGraph:
         if u not in self.edges: 
             self.edges[u] = []
         self.edges[u].append((v, weight))
-        # Garante que o destino também existe no dicionário para evitar erros de chave
         if v not in self.edges:
             self.edges[v] = []
 
@@ -21,16 +20,15 @@ class SimpleGraph:
 
 class BatchQueue:
     """
-    Implementação da estrutura D baseada em Min-Heap para simular
-    o processamento em lotes do algoritmo.
+    Implementação da estrutura D corrigida para processar intervalos (Buckets).
     """
     def __init__(self):
         self.priority_queue = []
         self.bound = float('inf')
-        self.m_parameter = 1
+        self.m_parameter = 1.0 # M: O tamanho do passo/bucket
 
-    def initialize(self, m: int, bound: float):
-        self.m_parameter = m
+    def initialize(self, m: float, bound: float):
+        self.m_parameter = max(m, 1.0) # Garante que o passo é pelo menos 1
         self.bound = bound
         self.priority_queue = [] 
 
@@ -38,27 +36,41 @@ class BatchQueue:
         if dist < self.bound:
             heapq.heappush(self.priority_queue, (dist, vertex))
 
-    def batch_prepend(self, items: Iterable[any]):
-        """Adiciona itens à fila (pode receber um set ou lista de vértices/tuplos)."""
-        # Nota: Na implementação real, items pode ser só vértices ou (v, dist).
-        # Aqui assumimos que quem chama já tratou das distâncias ou passamos explicitamente.
-        pass 
-        # ATENÇÃO: Para simplificar a integração com o código principal que usa 
-        # insert individualmente, este método é um placeholder para a lógica complexa
-        # de "Prepend" do paper. A lógica de insert principal acontece no loop.
-
     def pull(self) -> Tuple[float, Set]:
+        """
+        Retira um lote de vértices.
+        Em vez de retirar apenas o mínimo exato, retira tudo dentro do intervalo [min, min + M).
+        """
         if self.is_empty():
             return self.bound, set()
 
+        # 1. Determinar o intervalo do lote
         current_min_dist = self.priority_queue[0][0]
+        
+        # O limite deste lote é o mínimo + o parâmetro M (o tamanho do passo)
+        # Ex: Se min=0 e M=4, processamos tudo até 4.
+        batch_limit = current_min_dist + self.m_parameter
+        
+        # Não podemos ultrapassar o limite global B
+        batch_limit = min(batch_limit, self.bound)
+
         batch_sources = set()
 
-        while self.priority_queue and self.priority_queue[0][0] == current_min_dist:
+        # 2. Retirar tudo o que cabe neste intervalo
+        # Nota: Retiramos elementos estritamente menores que o limite do lote
+        # para dar espaço à recursão processar até esse limite.
+        while self.priority_queue and self.priority_queue[0][0] < batch_limit:
             dist, vertex = heapq.heappop(self.priority_queue)
             batch_sources.add(vertex)
+            
+        # Se por acaso o bucket ficar vazio (ex: distancias iguais ao limit),
+        # forçamos a retirada de pelo menos o mínimo para evitar loops infinitos
+        if not batch_sources and self.priority_queue:
+             dist, vertex = heapq.heappop(self.priority_queue)
+             batch_sources.add(vertex)
+             batch_limit = max(batch_limit, dist + 0.0001)
 
-        return current_min_dist, batch_sources
+        return batch_limit, batch_sources
 
     def is_empty(self) -> bool:
         return len(self.priority_queue) == 0
