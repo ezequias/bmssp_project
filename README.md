@@ -2,7 +2,14 @@
 
 Este documento explana sobre o código utilizado para a transcrição para a linguagem Python do SSSP, um algoritmo complexo de **Caminho Mais Curto Multi-Origem Limitado (BMSSP)**.
 
-O objetivo deste projeto é implementar o algoritmo que supera as limitações de ordenação do Dijkstra tradicional através de uma estrutura densa de lógica matemática misturada com controlo de fluxo (loops e condições).
+O objetivo deste projeto é implementar o algoritmo que supera as limitações de ordenação do Dijkstra tradicional através de uma estrutura densa de lógica matemática misturada com controle de fluxo (loops e condições).
+
+A insight original veio da postagem no [X](https://x.com/0x0SojalSec/status/2010113458008948784) que mostra um pseudocódigo no estilo científico. Mais especificamente, ele utiliza uma notação matemática e algorítmica padrão em artigos científicos de Ciência da Computação (muitas vezes formatada usando um pacote do LaTeX chamado algorithmicx ou algorithm2e).
+
+O artigo original do estudo pode ser encontrado em: (https://arxiv.org/pdf/2504.17033)
+
+![BMSSP](image-1.png)
+
 
 ---
 
