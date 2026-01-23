@@ -1,0 +1,25 @@
+{
+  "name": "bmssp_project",
+  "version": "1.0.0",
+  "description": "Este documento explana sobre o código utilizado para a transcrição para a linguagem Python do SSSP, um algoritmo complexo de **Caminho Mais Curto Multi-Origem Limitado (BMSSP)**.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ezequias/bmssp_project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ezequias/bmssp_project/issues"
+  },
+  "homepage": "https://github.com/ezequias/bmssp_project#readme"
+}
