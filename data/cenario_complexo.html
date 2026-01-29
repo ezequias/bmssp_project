@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualização Interativa BMSSP - Destaque</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; overflow: hidden; background: #1a1c2c; }
+        #cy { width: 100vw; height: 100vh; display: block; }
+        .info-panel {
+            position: absolute; top: 20px; left: 20px; background: rgba(255, 255, 255, 0.1);
+            color: white; padding: 15px; border-radius: 8px; backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2); pointer-events: none; z-index: 10;
+        }
+        h2 { margin: 0 0 10px 0; font-size: 18px; color: #4ecdc4; }
+        .legend { font-size: 12px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="info-panel">
+    <h2>Grafo de Navegação Natural</h2>
+    <div class="legend">
+        <b>Verde (Grande):</b> Início (A)<br>
+        <b>Vermelho (Grande):</b> Alvo (F)<br>
+        <b>Azul:</b> Nós intermediários<br>
+        <i>Arraste os nós para organizar a visualização</i>
+    </div>
+</div>
+
+<div id="cy"></div>
+
+<script>
+    const graphData = {
+        nodes: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "N1", "N2", "N3", "N4"],
+        edges: [
+            {"u": "A", "v": "B", "w": 5}, {"u": "B", "v": "C", "w": 10}, {"u": "C", "v": "D", "w": 2}, {"u": "D", "v": "F", "w": 3},
+            {"u": "A", "v": "E", "w": 20}, {"u": "E", "v": "F", "w": 2}, {"u": "B", "v": "G", "w": 8}, {"u": "G", "v": "H", "w": 1},
+            {"u": "H", "v": "F", "w": 12}, {"u": "C", "v": "I", "w": 4}, {"u": "I", "v": "J", "w": 5}, {"u": "J", "v": "F", "w": 6},
+            {"u": "K", "v": "L", "w": 3}, {"u": "L", "v": "M", "w": 7}, {"u": "M", "v": "A", "w": 2}, {"u": "N", "v": "O", "w": 9},
+            {"u": "O", "v": "P", "w": 1}, {"u": "P", "v": "F", "w": 15}, {"u": "Q", "v": "R", "w": 4}, {"u": "R", "v": "S", "w": 2},
+            {"u": "S", "v": "T", "w": 8}, {"u": "T", "v": "F", "w": 3}, {"u": "U", "v": "V", "w": 6}, {"u": "V", "v": "W", "w": 4},
+            {"u": "W", "v": "X", "w": 1}, {"u": "X", "v": "Y", "w": 2}, {"u": "Y", "v": "Z", "w": 5}, {"u": "Z", "v": "F", "w": 10},
+            {"u": "N1", "v": "N2", "w": 3}, {"u": "N2", "v": "N3", "w": 4}, {"u": "N3", "v": "N4", "w": 2}, {"u": "N4", "v": "F", "w": 1}
+        ]
+    };
+
+    const elements = [];
+    
+    // Preparação dos nós com cores
+    graphData.nodes.forEach(n => {
+        let color = '#4a90e2'; // Azul padrão
+        if (n === 'A') color = '#2ecc71'; // Verde
+        if (n === 'F') color = '#e74c3c'; // Vermelho
+        elements.push({ data: { id: n, color: color } });
+    });
+
+    // Preparação das arestas
+    graphData.edges.forEach((e, i) => {
+        elements.push({ data: { id: 'e' + i, source: e.u, target: e.v, weight: e.w } });
+    });
+
+    var cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: elements,
+        style: [
+            // Estilo Padrão para TODOS os nós
+            {
+                selector: 'node',
+                style: {
+                    'background-color': 'data(color)',
+                    'label': 'data(id)',
+                    'color': '#fff',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'width': 40,
+                    'height': 40,
+                    'font-size': 14,
+                    'border-width': 2,
+                    'border-color': '#fff'
+                }
+            },
+            // NOVO: Estilo Específico para A e F (1.8x maior)
+            {
+                selector: 'node[id="A"], node[id="F"]',
+                style: {
+                    'width': 72,   /* 40 * 1.8 */
+                    'height': 72,  /* 40 * 1.8 */
+                    'font-size': 24, /* Fonte maior para acompanhar */
+                    'border-width': 4,
+                    'z-index': 9999 /* Garante que fiquem por cima se houver sobreposição */
+                }
+            },
+            // Estilo das Arestas
+            {
+                selector: 'edge',
+                style: {
+                    'width': 2,
+                    'line-color': 'rgba(255,255,255,0.3)',
+                    'target-arrow-color': 'rgba(255,255,255,0.3)',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier',
+                    'label': 'data(weight)',
+                    'color': '#ccc',
+                    'font-size': 10,
+                    'text-rotation': 'autorotate',
+                    'text-margin-y': -10
+                }
+            }
+        ],
+        layout: {
+            name: 'cose', 
+            animate: true,
+            nodeRepulsion: 400000,
+            idealEdgeLength: 100,
+            padding: 50
+        }
+    });
+</script>
+</body>
+</html>
