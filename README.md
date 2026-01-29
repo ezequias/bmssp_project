@@ -17,7 +17,7 @@ O artigo original do estudo pode ser encontrado em: (https://arxiv.org/pdf/2504.
 
 **Idealização e Desenvolvimento:** Ezequias Rocha
 
-Este código foi desenvolvido com o apoio de um **Parceiro de Programação**, com o objetivo de transformar um pseudocódigo denso num código Python seguindo os princípios de **"Uncle Bob" (Código Limpo)**:
+Este código foi desenvolvido com o apoio de um **Parceiro de Programação** Gemini Pro![Gemini Pro](gemini.png), com o objetivo de transformar um pseudocódigo denso num código Python seguindo os princípios de **"Uncle Bob" (Código Limpo)**:
 
 1.  **Nomes Descritivos:** Substituição de variáveis genéricas por nomes que explicam o seu propósito.
 2.  **Funções Pequenas:** Extração da lógica complexa de dentro dos loops para funções auxiliares.
