@@ -87,4 +87,4 @@ Este vídeo explica o contexto do avanço teórico deste paper específico (queb
 
 ## 📜 Licença e Princípios
 
-Este projeto foi desenvolvido com foco nos princípios de **Clean Code** de Robert C. Martin. Sinta-se à vontade para expandir o dicionário de dados na pasta `data/` para testar novos limites do algoritmo.
+Este projeto foi desenvolvido com foco nos princípios de **Clean Code** do [Robert C. Martin](https://github.com/unclebob). Sinta-se à vontade para expandir o dicionário de dados na pasta `data/` para testar novos limites do algoritmo.

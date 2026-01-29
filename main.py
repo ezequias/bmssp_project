@@ -38,7 +38,7 @@ def print_path_summary(dist_map, start_node, target_node, graph):
     # Imprime no console com setas
     print("\n" + "="*50)
     print(f"📍 RESUMO DA ROTA (GPS)")
-    print(f"🏁 Origem: {start_node} | 🎯 Destino: {target_node}")
+    print(f"🟩 Origem: {start_node} | 🏁 Destino: {target_node}")
     print(f"🛣️  Caminho: {' ➔ '.join(path)}")
     print(f"💰 Custo Total: {total_cost:.2f}")
     print("="*50 + "\n")
